@@ -24,9 +24,10 @@ library(nlstools)
 
 ### Fun, beautiful tables with `gt`
 
-We'll use the `LifeCycleSavings` built-in dataset. See `?LifeCycleSavings` for more information. 
+We'll use the `LifeCycleSavings` built-in dataset. See `?LifeCycleSavings` for more information on the included variables. 
 
-Simplify it a bit to get the 10 countries with the lowest savings ratio:
+Simplify it a bit to get the 5 countries with the lowest savings ratio:
+
 ```{r}
 
 disp_income <- LifeCycleSavings %>% 
@@ -118,7 +119,7 @@ ALWAYS ask questions:
 Bootstrap the mean salinity: 
 ```{r}
 
-# First, create a function that will calculate the median of each bootstrapped sample
+# First, create a function that will calculate the mean of each bootstrapped sample
 mean_fun <- function (x,i) {mean(x[i])}
 
 # Then, get just the vector of salinity (salinity$sal)
@@ -162,19 +163,8 @@ p2 <- ggplot(data = salboot_100_df, aes(x = bs_mean)) +
 p3 <- ggplot(data = salboot_10k_df, aes(x = bs_mean)) +
   geom_histogram()
 
-# Aside: PATCHWORK IS AWESOME!!! 
+# Aside: remember that {patchwork} is awesome. 
 p1 + p2 + p3
-```
-
-Seriously, check out how awesome `patchwork` by Thomas Lin Pedersen is: https://patchwork.data-imaginist.com/articles/guides/assembly.html...a game changer for piecing together compound figures! 
-
-It also knows PEMDAS
-```{r}
-p1 + p2 / p3
-```
-
-```{r}
-(p1 + p2) / p3
 ```
 
 ## OK back to bootstrapping...
@@ -191,11 +181,12 @@ A reminder on what a confidence interval means: For a 95% confidence interval, t
 
 What it does **not** mean: There's a 95% chance that your confidence interval contains the true population parameter (it either does or it doesn't)...
 
-And you can bootstrap all kinds of other things too (medians, variances, correlations, regression coefficients, etc.), but there are limitations.
+And you can bootstrap all kinds of other things too (medians, variances, correlations, regression coefficients, etc.).
 
 ### Nonlinear least squares
 
 Read in some mock logistic growth data:
+
 ```{r}
 df <- read_csv(here("data", "log_growth.csv"))
 
@@ -223,6 +214,7 @@ $P(t)=\frac{K}{1+Ae^{-kt}}$, where
 ### Initial estimates for *K*, *A* and *k*
 
 Estimate the growth constant during exponential phase (to get a starting-point guess for *k*): 
+
 ```{r}
 # Get only up to 14 hours & ln transform pop
 df_exp <- df %>% 

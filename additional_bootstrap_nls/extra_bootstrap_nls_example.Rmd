@@ -1,7 +1,6 @@
 ---
-title: "Lecture 13 examples"
+title: "Lecture Week 9 extra example: bootstrapping NLS"
 author: "Allison Horst"
-date: "3/1/2020"
 output: html_document
 ---
 
@@ -115,7 +114,7 @@ df_ci
 
 A great vignette that this code is taken from directly: [`broom` vignette on bootstrapping from `nls`](https://cran.r-project.org/web/packages/broom/vignettes/bootstrapping.html)
 
-" Bootstrapping is a popular method for providing confidence intervals and predictions that are more robust to the nature of the data.
+"Bootstrapping is a popular method for providing confidence intervals and predictions that are more robust to the nature of the data.
 
 We can use the bootstraps function in the rsample package to sample bootstrap replications. First, we construct 100 bootstrap replications of the data, each of which has been randomly sampled with replacement. The resulting object is an rset, which is a dataframe with a column of rsplit objects.
 
