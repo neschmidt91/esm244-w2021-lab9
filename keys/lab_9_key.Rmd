@@ -24,9 +24,9 @@ library(nlstools)
 
 ### Fun, beautiful tables with `gt`
 
-We'll use the `LifeCycleSavings` built-in dataset. See `?LifeCycleSavings` for more information on the included variables. 
+We'll use the `LifeCycleSavings` built-in dataset. See `?LifeCycleSavings` for more information on the included variables, and in the Console run `View(LifeCycleSavings)` to see the data. 
 
-Simplify it a bit to get the 5 countries with the lowest savings ratio:
+Simplify the data a bit to get the 5 countries with the lowest savings ratio:
 
 ```{r}
 
@@ -49,6 +49,7 @@ We'll make a custom table using the `gt` package with the following goals:
 - Color of dpi cells should change based on value
 
 Build this one level at a time to see changes: 
+
 ```{r}
 disp_income %>% 
   gt() %>% 
@@ -98,8 +99,8 @@ Bootstrapping uses **sampling with replacement** to find a sampling distribution
 
 From dataset documentation: "Biweekly averages of the water salinity and river discharge in Pamlico Sound, North Carolina were recorded between the years 1972 and 1977. The data in this set consists only of those measurements in March, April and May."
 
-
 Look & explore `salinity` dataset. 
+
 ```{r}
 # View(salinity)
 
