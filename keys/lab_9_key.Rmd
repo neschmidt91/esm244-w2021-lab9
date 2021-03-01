@@ -22,7 +22,7 @@ library(nlstools)
 # remotes::install_github("rstudio/gt")
 ```
 
-### Fun, beautiful tables with `gt`
+## Part 1: Fun, beautiful tables with `gt`
 
 We'll use the `LifeCycleSavings` built-in dataset. See `?LifeCycleSavings` for more information on the included variables, and in the Console run `View(LifeCycleSavings)` to see the data. 
 
@@ -48,31 +48,31 @@ We'll make a custom table using the `gt` package with the following goals:
 - Per capita disposable income (dpi) should be as dollars
 - Color of dpi cells should change based on value
 
-Build this one level at a time to see changes: 
+Build this one level at a time to see changes (e.g., you should write the code and run before each additional pipe operator to see what the code does): 
 
 ```{r}
 disp_income %>% 
   gt() %>% 
-  tab_header(
+  tab_header( # Adds an overall header
     title = "Life cycle savings", # Add a title
     subtitle = "5 countries with lowest per capita disposable income" # And a subtitle
   ) %>% 
   fmt_currency( # Reformat to currency notation...
-    columns = vars(dpi), # The values for the 'Height' variable
+    columns = vars(dpi), # The values for the 'dpi' variable
     decimals = 2 # Keeping 3 decimal places
   ) %>% 
-  fmt_percent(
-    columns = vars(pop15, pop75, ddpi),
+  fmt_percent( # Reformat to percent notation...
+    columns = vars(pop15, pop75, ddpi), # The values in these columns
     decimals = 1
   ) %>% 
-  fmt_number(
-    columns = vars(sr),
+  fmt_number( # Format a number
+    columns = vars(sr), # For this variable
     decimals = 1
   ) %>% 
   tab_options(
-    table.width = pct(80)
+    table.width = pct(80) # Update table width
   ) %>% 
-  tab_footnote(
+  tab_footnote( # Add a footnote
     footnote = "Data averaged from 1970 - 1980",
     location = cells_title()
   ) %>% 
@@ -84,7 +84,7 @@ disp_income %>%
       domain = c(120,190) # Scale endpoints (outside will be gray)
   )
   ) %>% 
-  cols_label(
+  cols_label( # Updat column labels manually
     sr = "Savings ratio",
     pop15 = "Pop < 15yr",
     pop75 = "Pop < 75yr",
@@ -93,13 +93,13 @@ disp_income %>%
   )
 ```
 
-### Bootstrapping!
+## Part 2: Bootstrapping!
 
-Bootstrapping uses **sampling with replacement** to find a sampling distribution that is based on more than a single sample. Let's bootstrap a 95% confidence interval for the mean salinity of river discharge in Pamlico Sound, NC (see `?salinity` for information on the dataset from the `boot`) package. 
+Bootstrapping uses **sampling with replacement** to find a sampling distribution that is based on more than a single sample. Let's bootstrap a 95% confidence interval for the mean salinity of river discharge in Pamlico Sound, NC (see `?salinity` for information on the dataset, which exists in the `boot`) package. 
 
 From dataset documentation: "Biweekly averages of the water salinity and river discharge in Pamlico Sound, North Carolina were recorded between the years 1972 and 1977. The data in this set consists only of those measurements in March, April and May."
 
-Look & explore `salinity` dataset. 
+Look at & explore the `salinity` data set. 
 
 ```{r}
 # View(salinity)
@@ -113,13 +113,17 @@ t.test(salinity$sal) # Get 95% CI for t-distribution
 
 ALWAYS ask questions: 
 
-- Do the data look normally distributed? 
-- Do we have a large enough n to depend on Central Limit Theorem? 
+- How are the data distributed? 
+- Do we think the mean is a valid metric for central tendency?
+- What is our sample size?
+- Outliers? Anomalies? 
 - What assumptions do we make if we find the CI based on a single sample using the t-distribution here? 
 
-Bootstrap the mean salinity: 
-```{r}
+### Bootstrap the mean salinity: 
 
+We will bootstrap the mean salinity by first creating a function to calculate the mean for each of our bootstrap samples.
+
+```{r}
 # First, create a function that will calculate the mean of each bootstrapped sample
 mean_fun <- function (x,i) {mean(x[i])}
 
@@ -141,10 +145,14 @@ salboot_100
 salboot_10k
 
 # Question: do we all get the same thing? What would we have to do in order to all get the same thing (hint: set.seed())? And would we *want* that? 
+```
 
-# Use $t0 to see the original sample mean, and $t to see the means for each of the bootstrap samples:
+Let's take a look at our bootstrap samples using `t0` (to see the original sample mean) and `t` (to see the means of each of the bootstrap samples).
+
+```{r}
+# Use $t0 element from the `boot` output to see the original sample mean, and $t to see the means for each of the bootstrap samples:
 salboot_100$t0 # The original sample mean
-salboot_100$t # These are all the means for each 100 samples
+salboot_100$t # These are all the means for each of the 100 bootstrap samples
 
 # Make vectors of bootstrap sample means a data frame (so ggplot will deal with it). 
 salboot_100_df <- data.frame(bs_mean = salboot_100$t)
@@ -165,26 +173,27 @@ p3 <- ggplot(data = salboot_10k_df, aes(x = bs_mean)) +
   geom_histogram()
 
 # Aside: remember that {patchwork} is awesome. 
-p1 + p2 + p3
+(p1 + p2 + p3) & theme_minimal()
 ```
 
 ## OK back to bootstrapping...
 
-So now we have a sampling distribution based on means calculated from a large number of bootstrap samples, and we can use *this* sampling distribution (instead of one based on assumptions for our single sample) to find the confidence interval. 
+So now we have a sampling distribution based on means calculated from a large number of bootstrap samples, and we can use *this* bootstrapped sampling distribution (instead of one based on assumptions for our single sample) to find the confidence interval. 
+
+Use `boot.ci()` to find the confidence interval for the bootstrapped distribution (here, with the 10k bootstrapped means):
 
 ```{r}
 boot.ci(salboot_10k, conf = 0.95)
 ```
-
-We'll chat a bit about what each of these CIs means, and you can read more here: https://besjournals.onlinelibrary.wiley.com/doi/pdf/10.1111/1365-2656.12382
-
 A reminder on what a confidence interval means: For a 95% confidence interval, that means we expect that 95 of 100 calculated confidence intervals will contain the actual population parameter. 
 
 What it does **not** mean: There's a 95% chance that your confidence interval contains the true population parameter (it either does or it doesn't)...
 
-And you can bootstrap all kinds of other things too (medians, variances, correlations, regression coefficients, etc.).
+And you can bootstrap all kinds of other things too (medians, variances, correlations, regression coefficients, etc.). Cool!
 
-### Nonlinear least squares
+## Part 3: Nonlinear least squares
+
+Nonlinear least squares (NLS) finds parameter estimates to minimize the sum of squares of residuals, using an iterative algorithm. We'll use NLS to find the parameters for a logistic growth equation. 
 
 Read in some mock logistic growth data:
 
@@ -197,14 +206,14 @@ ggplot(data = df, aes(x = time, y = pop)) +
   theme_minimal() +
   labs(x = "time (hr)", y = "population (ind)")
 
-# Look at the log transformed:
+# Look at the log transformed data:
 ggplot(data = df, aes(x = time, y = log(pop))) +
   geom_point() +
   theme_minimal() +
   labs(x = "time (hr)", y = "ln(population)")
 ```
 
-Recall: 
+Recall the logistic growth equation: 
 
 $P(t)=\frac{K}{1+Ae^{-kt}}$, where
 
@@ -212,17 +221,18 @@ $P(t)=\frac{K}{1+Ae^{-kt}}$, where
 - $A$ is $\frac{K-P_0}{P_0}$
 - $k$ is the growth rate constant
 
-### Initial estimates for *K*, *A* and *k*
+### Find initial estimates for *K*, *A* and *k*
 
 Estimate the growth constant during exponential phase (to get a starting-point guess for *k*): 
 
 ```{r}
-# Get only up to 14 hours & ln transform pop
+# Get only up to 14 hours & log transform the population
+# We do this so we can estimate the growth rate constant (k) *during exponential growth phase)
 df_exp <- df %>% 
   filter(time < 15) %>% 
   mutate(ln_pop = log(pop))
   
-# Model linear to get *k* estimate:
+# Model linear to get *k* estimate (the slope of this linear equation is an estimate of the growth rate constant):
 lm_k <- lm(ln_pop ~ time, data = df_exp)
 lm_k
 
@@ -231,15 +241,16 @@ lm_k
 
 Now we have initial estimate for *k* (0.17), and we can estimate *K* ~180 and *A* ~ 17. We need those estimates because we will use them as starting points for interative algorithms trying to converge on the parameters. If we're too far off, they may not converge or could converge on the very wrong thing.
 
-Two methods we'll try to estimate the parameters: nonlinear least squares (NLS) and Maximum Likelihood Estimation (MLE). 
+We'll estimate the parameters using nonlinear least squares (NLS): 
 
 ### Nonlinear least squares
 
-Nonlinear least squares converges on parameter estimates that minimize the the sum of squares of residuals through an iterative algorithm (we'll use Gauss-Newton, the most common). 
+Nonlinear least squares converges on parameter estimates that minimize the the sum of squares of residuals through an iterative algorithm (we'll use Gauss-Newton, the most common algorithm). 
 
 Check out the `stats::nls()` function (`?nls`) for more information. 
 
 Now enter our model information, with a list of estimated starting parameter values:
+
 ```{r}
 df_nls <- nls(pop ~ K/(1 + A*exp(-r*time)),
               data = df,
@@ -247,22 +258,24 @@ df_nls <- nls(pop ~ K/(1 + A*exp(-r*time)),
               trace = TRUE
               )
 
-# Note: you can add argument `trace = TRUE` to see the different estimates at each iteration (and the left-most column reported tells you SSE)
+# Note: you can add argument `trace = TRUE` to see the different estimates at each iteration (and the left-most column reported tells you SSE overall)
 
+# See the model summary (null hypothesis: parameter value = 0)
 summary(df_nls)
 
 # Use broom:: functions to get model outputs in tidier format: 
-model_out <- broom::tidy(df_nls)
+model_out <- broom::tidy(df_nls) # Use View(model_out) to see the tidy model output.
 
-# Want to just get one of these? 
-A_est <- tidy(df_nls)$estimate[1]
+# Want to just get one of these?  
+A_est <- model_out$estimate[2] # Gets the first rown in the estimate column.
 
 ```
 
 Our model with estimated parameters is:
 $$P(t) = \frac{188.7}{1+138.86e^{-0.35t}}$$
 
-### Visualize model
+### Visualize model over original observed values
+
 ```{r}
 
 # Make predictions for the population at all of those times (time) in the original df: 
@@ -281,7 +294,8 @@ ggplot(data = df_complete, aes(x = time, y = pop)) +
 
 ### Find confidence intervals for parameter estimates
 
-See `?confint2` and `?confint.nls`
+See `?confint2` and `?confint.nls` (in `nlstools` package)
+
 ```{r}
 df_ci <- confint2(df_nls)
 df_ci
